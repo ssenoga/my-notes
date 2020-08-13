@@ -1,0 +1,29 @@
+/* Small (sm) */
+@media (max-width: 640px) {
+  .login {
+    display: block;
+    width: 95vw;
+    margin: 0 auto;
+  }
+  .login__form {
+    width: 100%;
+  }
+  .login__header {
+    text-align: center;
+  }
+}
+
+/* Medium (md) */
+@media (min-width: 768px) {
+  /* ... */
+}
+
+/* Large (lg) */
+@media (min-width: 1024px) {
+  /* ... */
+}
+
+/* Extra Large (xl) */
+@media (min-width: 1280px) {
+  /* ... */
+}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Loader from "../SimpleComponents/Loader";
 import "./login.css";
+import { Link } from "react-router-dom";
 
 export default function Signup() {
   //email regx
@@ -41,14 +42,10 @@ export default function Signup() {
     }
   };
 
-  const goToLogin = () => {
-    alert(1);
-  };
-
   return (
     <div className="login">
       <div className="login__header">
-        <h1>Signup your free account</h1>
+        <h1>Log into your account</h1>
       </div>
       <form className="login__form">
         <div className="form__group">
@@ -104,9 +101,9 @@ export default function Signup() {
             {loading && <Loader size={"small"} />}
           </button>
           <p>OR</p>
-          <button className="input__button btn__primary" onClick={goToLogin}>
+          <Link className="input__button btn__primary" to="/signup">
             SIGNUP
-          </button>
+          </Link>
         </div>
       </form>
     </div>

@@ -23,12 +23,9 @@ export default function reducer(state, action) {
       };
     case "ADD_NEW_NOTE":
       return {
-        user: {
-          id: state.user.id,
-          authenticated: state.authenticated,
-          name: state.user.name,
-          notes: state.user.notes.concat(action.note)
-        }
+        users: state.users,
+        authenticated: state.authenticated,
+        notes: state.notes.concat(action.note)
       };
 
     default:

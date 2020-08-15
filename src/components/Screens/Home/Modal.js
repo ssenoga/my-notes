@@ -10,17 +10,23 @@ export default function MyModal({ open, handleOpen }) {
   const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
 
-  const [, dispatch] = UseStateValue();
+  const [{ users }, dispatch] = UseStateValue();
 
   const handleOnClick = (e) => {
     e.preventDefault();
+    const id = v4();
 
-    db.collection("user").doc("");
+    db.collection("user").doc(users.id).collection("notes").add({
+      id,
+      title,
+      category,
+      content
+    });
 
     dispatch({
       type: "ADD_NEW_NOTE",
       note: {
-        id: v4(),
+        id,
         title,
         category,
         content

@@ -1,18 +1,7 @@
 export const initialState = {
-  user: {
-    id: 1,
-    name: "Ssenoga",
-    authenticated: false,
-    notes: [
-      // {
-      //   id: 1,
-      //   title: "This is my first test",
-      //   category: "Learning",
-      //   content:
-      //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed maximus tortor dictum, maximus neque et, lacinia velit. In eu elit rutrum nibh malesuada iaculis quis vel metus. Suspendisse ac tortor aliquet nisi malesuada aliquam. Duis id nibh accumsan, posuere odio eget, vulputate erat. Donec ut massa turpis. Maecenas a libero nisi"
-      // }
-    ]
-  }
+  users: null,
+  authenticated: false,
+  notes: []
 };
 
 export default function reducer(state, action) {
@@ -25,6 +14,12 @@ export default function reducer(state, action) {
           name: state.user.name,
           notes: state.user.notes
         }
+      };
+    case "SET_USER":
+      return {
+        ...state,
+        users: action.user,
+        authenticated: true
       };
     case "ADD_NEW_NOTE":
       return {

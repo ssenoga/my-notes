@@ -3,6 +3,7 @@ import { Modal } from "@material-ui/core";
 import { v4 } from "uuid";
 
 import { UseStateValue } from "../../../stateProvider";
+import { db } from "../../../firebase";
 
 export default function MyModal({ open, handleOpen }) {
   const [title, setTitle] = useState("");
@@ -13,6 +14,8 @@ export default function MyModal({ open, handleOpen }) {
 
   const handleOnClick = (e) => {
     e.preventDefault();
+
+    db.collection("user").doc("");
 
     dispatch({
       type: "ADD_NEW_NOTE",

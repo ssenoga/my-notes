@@ -18,8 +18,12 @@ export default function Signup() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [user, setUser] = useState(null);
+
   let history = useHistory();
   let location = useLocation();
+
+  let { from } = location.state || { from: { pathname: "/home" } };
 
   const [, dispatch] = UseStateValue();
 
@@ -33,18 +37,22 @@ export default function Signup() {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
       if (authUser) {
         //user has logged in
-        console.log(authUser);
-        // setUser(authUser);
+        setUser(authUser.displayName);
+        dispatch({
+          type: "SET_USER",
+          user: user
+        });
+        history.replace(from);
       } else {
         //user has logged out
-        // setUser(null);
+        setUser(null);
       }
     });
     return () => {
       //do some clean ups
       unsubscribe();
     };
-  }, []);
+  }, [user, dispatch, from, history]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -63,8 +71,6 @@ export default function Signup() {
     //check to see if all field are not empty
     if (!emptyName && !empyEmail && !empyPassword) {
       //proceeed to submit the form
-
-      let { from } = location.state || { from: { pathname: "/home" } };
 
       setLoading(true);
       auth

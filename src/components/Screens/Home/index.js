@@ -7,10 +7,41 @@ import { UseStateValue } from "../../../stateProvider";
 import { Link, useRouteMatch, Route, Switch } from "react-router-dom";
 
 import { useParams } from "react-router-dom";
+import { db } from "../../../firebase";
 
 export default function Home() {
-  const [{ user }] = UseStateValue();
+  const [{ users }, dispatch] = UseStateValue();
   const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState([]);
+
+  useEffect(() => {
+    db.collection("user").onSnapshot((snapshot) => {
+      const loggedInUser = {
+        ...snapshot.docs.map((doc) => ({
+          name: doc.data().username,
+          id: doc.id
+        }))
+      };
+
+      //check to see if the logged in user is in the db
+      if (users === loggedInUser[0]?.name) {
+        dispatch({
+          type: "SET_USER",
+          user: { name: loggedInUser[0]?.name, id: loggedInUser[0]?.id }
+        });
+        db.collection("user")
+          .doc(loggedInUser[0].id)
+          .collection("notes")
+          .onSnapshot((snapShot) => {
+            setNotes(snapShot.docs.map((doc) => ({ note: doc.data() })));
+          });
+      } else {
+        setNotes([]);
+      }
+    });
+  }, [users, dispatch]);
+
+  // notes.map((note) => console.log(note.note));
 
   const handleOpen = (x) => setOpen(x);
   let { path, url } = useRouteMatch();
@@ -30,9 +61,9 @@ export default function Home() {
         </div>
         <div className="list">
           <ul>
-            {user?.notes.map((note) => (
-              <li key={note.id}>
-                <Link to={`${url}/${note.id}`}>{note.title}</Link>
+            {notes?.map((note) => (
+              <li key={note.note.id}>
+                <Link to={`${url}/${note.note.id}`}>{note.note.title}</Link>
               </li>
             ))}
           </ul>
@@ -53,7 +84,7 @@ export default function Home() {
             </div>
           </Route>
           <Route path={`${path}/:noteID`}>
-            <Read setOpen={setOpen} />
+            <Read setOpen={setOpen} notes={notes} />
           </Route>
         </Switch>
       </div>
@@ -61,17 +92,15 @@ export default function Home() {
   );
 }
 
-const Read = ({ setOpen }) => {
-  const [{ user }] = UseStateValue();
+const Read = ({ setOpen, notes }) => {
+  // const [{ user }] = UseStateValue();
   const { noteID } = useParams();
-  let note = user.notes.filter((note) => note.id === noteID);
+  let note = notes.filter((note) => note.note.id === noteID);
 
-  console.log(user.notes[0]);
-  console.log(note);
   return (
     <>
       <div className="read__header">
-        <h2>{note[0]?.title}</h2>
+        <h2>{note[0]?.note.title}</h2>
         <div
           onClick={() => setOpen(true)}
           className="add__icon"
@@ -81,11 +110,11 @@ const Read = ({ setOpen }) => {
       </div>
       <div className="read__category">
         <h4>
-          {note[0]?.category} <sup>.</sup> 2020/08/12
+          {note[0]?.note.category} <sup>.</sup> 2020/08/12
         </h4>
       </div>
       <div className="read__content">
-        <p>{note[0]?.content}</p>
+        <p>{note[0]?.note.content}</p>
       </div>
     </>
   );

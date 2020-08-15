@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Loader from "../SimpleComponents/Loader";
 import "./login.css";
-import { Link } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
+import { auth } from "../../firebase";
+import { UseStateValue } from "../../stateProvider";
 
 export default function Signup() {
   //email regx
@@ -15,9 +17,40 @@ export default function Signup() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [user, setUser] = useState(null);
+
   //error handler
   const [empyEmail, setEmptyEmail] = useState(false);
   const [empyPassword, setEmptyPassword] = useState(false);
+  const [, dispatch] = UseStateValue();
+
+  let history = useHistory();
+  let location = useLocation();
+
+  let { from } = location.state || { from: { pathname: "/home" } };
+
+  //check if user has already signed in
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        //user has logged in
+        setUser(authUser.displayName);
+        console.log(authUser);
+        dispatch({
+          type: "SET_USER",
+          user: user
+        });
+        history.replace(from);
+      } else {
+        //user has logged out
+        setUser(null);
+      }
+    });
+    return () => {
+      //do some clean ups
+      unsubscribe();
+    };
+  }, [user, dispatch, from, history]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,8 +67,23 @@ export default function Signup() {
     //check to see if all field are not empty
     if (!empyEmail && !empyPassword) {
       //proceeed to submit the form
-
       setLoading(true);
+
+      auth
+        .signInWithEmailAndPassword(email, password)
+        .then((authUser) => {
+          if (authUser) {
+            setLoading(false);
+            dispatch({
+              type: "user_loggedin"
+            });
+          }
+        })
+        .catch((error) => {
+          alert(error.message);
+          setLoading(false);
+        });
+
       setTimeout(() => {
         setLoading(false);
       }, 2000);

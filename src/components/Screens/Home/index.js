@@ -7,14 +7,37 @@ import { UseStateValue } from "../../../stateProvider";
 import { Link, useRouteMatch, Route, Switch } from "react-router-dom";
 
 import { useParams } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db, auth } from "../../../firebase";
+import Loader from "../../SimpleComponents/Loader";
 
 export default function Home() {
   const [{ users }, dispatch] = UseStateValue();
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleLogout = (e) => {
+    auth
+      .signOut()
+      .then(() => {})
+      .catch((er) => {
+        alert(er.message);
+        e.preventDefault();
+      });
+  };
+
+  const drop = (
+    <div className="dropdown" style={{ display: isVisible ? "block" : "none" }}>
+      <Link to="/" onClick={handleLogout}>
+        Logout
+      </Link>
+    </div>
+  );
 
   useEffect(() => {
+    // setLoading(true);
     db.collection("user").onSnapshot((snapshot) => {
       const loggedInUser = {
         ...snapshot.docs.map((doc) => ({
@@ -22,23 +45,25 @@ export default function Home() {
           id: doc.id
         }))
       };
-
       //check to see if the logged in user is in the db
-      if (users === loggedInUser[0]?.name) {
+      if (users?.name === loggedInUser[0]?.name) {
         dispatch({
           type: "SET_USER",
           user: { name: loggedInUser[0]?.name, id: loggedInUser[0]?.id }
         });
+        // setLoading(false);
         db.collection("user")
-          .doc(loggedInUser[0].id)
+          .doc(loggedInUser[0]?.id)
           .collection("notes")
           .onSnapshot((snapShot) => {
             setNotes(snapShot.docs.map((doc) => ({ note: doc.data() })));
           });
       } else {
         setNotes([]);
+        setLoading(false);
       }
     });
+    setLoading(false);
   }, [users, dispatch]);
 
   // notes.map((note) => console.log(note.note));
@@ -61,11 +86,15 @@ export default function Home() {
         </div>
         <div className="list">
           <ul>
-            {notes?.map((note) => (
-              <li key={note.note.id}>
-                <Link to={`${url}/${note.note.id}`}>{note.note.title}</Link>
-              </li>
-            ))}
+            {loading ? (
+              <Loader size="small" />
+            ) : (
+              notes?.map((note) => (
+                <li key={note.note.id}>
+                  <Link to={`${url}/${note.note.id}`}>{note.note.title}</Link>
+                </li>
+              ))
+            )}
           </ul>
         </div>
       </div>
@@ -75,16 +104,30 @@ export default function Home() {
           <Route exact path={path}>
             <div className="read__header">
               <h2>Open Your note</h2>
-              <div
-                onClick={() => setOpen(true)}
-                className="add__icon"
-                title="Add New Note">
-                <AddIcon />
+              <div className="header__buttons">
+                <div
+                  onClick={() => setOpen(true)}
+                  className="add__icon"
+                  title="Add New Note">
+                  <AddIcon />
+                </div>
+                <div
+                  onClick={() => setIsVisible(!isVisible)}
+                  className="add__logout"
+                  title="Add New Note">
+                  {/* {users[0]} */}
+                </div>
+                {drop}
               </div>
             </div>
           </Route>
           <Route path={`${path}/:noteID`}>
-            <Read setOpen={setOpen} notes={notes} />
+            <Read
+              setOpen={setOpen}
+              notes={notes}
+              drop={drop}
+              setIsVisible={setIsVisible}
+            />
           </Route>
         </Switch>
       </div>
@@ -92,20 +135,31 @@ export default function Home() {
   );
 }
 
-const Read = ({ setOpen, notes }) => {
-  // const [{ user }] = UseStateValue();
+const Read = ({ setOpen, notes, drop, setIsVisible }) => {
+  const [{ users }] = UseStateValue();
+  console.log(users);
   const { noteID } = useParams();
+
   let note = notes.filter((note) => note.note.id === noteID);
 
   return (
     <>
       <div className="read__header">
         <h2>{note[0]?.note.title}</h2>
-        <div
-          onClick={() => setOpen(true)}
-          className="add__icon"
-          title="Add New Note">
-          <AddIcon />
+        <div className="header__buttons">
+          <div
+            onClick={() => setOpen(true)}
+            className="add__icon"
+            title="Add New Note">
+            <AddIcon />
+          </div>
+          <div
+            onClick={setIsVisible(true)}
+            className="add__logout"
+            title="Add New Note">
+            {users.name[0]}
+          </div>
+          {drop}
         </div>
       </div>
       <div className="read__category">

@@ -8,12 +8,10 @@ export default function reducer(state, action) {
   switch (action.type) {
     case "user_loggedin":
       return {
-        user: {
-          id: state.user.id,
-          authenticated: true,
-          name: state.user.name,
-          notes: state.user.notes
-        }
+        id: state.users.id,
+        authenticated: true,
+        name: state.users.name,
+        notes: state.notes
       };
     case "SET_USER":
       return {

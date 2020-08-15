@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Loader from "../SimpleComponents/Loader";
 import "./signup.css";
-import { Link } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
+import { auth } from "../../firebase";
+import { UseStateValue } from "../../stateProvider";
 
 export default function Signup() {
   //email regx
@@ -16,10 +18,33 @@ export default function Signup() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  let history = useHistory();
+  let location = useLocation();
+
+  const [, dispatch] = UseStateValue();
+
   //error handler
   const [emptyName, setEmptyName] = useState(false);
   const [empyEmail, setEmptyEmail] = useState(false);
   const [empyPassword, setEmptyPassword] = useState(false);
+
+  //check if user has already signed in
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        //user has logged in
+        console.log(authUser);
+        // setUser(authUser);
+      } else {
+        //user has logged out
+        // setUser(null);
+      }
+    });
+    return () => {
+      //do some clean ups
+      unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,10 +64,26 @@ export default function Signup() {
     if (!emptyName && !empyEmail && !empyPassword) {
       //proceeed to submit the form
 
+      let { from } = location.state || { from: { pathname: "/home" } };
+
       setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
+      auth
+        .createUserWithEmailAndPassword(email, password)
+        .then((authUser) => {
+          setLoading(false);
+          //dispatch an action
+          dispatch({
+            type: "user_loggedin"
+          });
+
+          history.replace(from);
+
+          return authUser.user.updateProfile({ displayName: username });
+        })
+        .catch((err) => {
+          setLoading(false);
+          return alert(err.message);
+        });
     }
   };
 

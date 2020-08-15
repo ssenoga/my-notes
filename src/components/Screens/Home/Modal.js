@@ -3,21 +3,30 @@ import { Modal } from "@material-ui/core";
 import { v4 } from "uuid";
 
 import { UseStateValue } from "../../../stateProvider";
+import { db } from "../../../firebase";
 
 export default function MyModal({ open, handleOpen }) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
 
-  const [, dispatch] = UseStateValue();
+  const [{ users }, dispatch] = UseStateValue();
 
   const handleOnClick = (e) => {
     e.preventDefault();
+    const id = v4();
+
+    db.collection("user").doc(users.id).collection("notes").add({
+      id,
+      title,
+      category,
+      content
+    });
 
     dispatch({
       type: "ADD_NEW_NOTE",
       note: {
-        id: v4(),
+        id,
         title,
         category,
         content
